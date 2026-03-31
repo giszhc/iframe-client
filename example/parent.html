@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Parent Page - Iframe Client Example</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .main-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        gap: 20px;
+      }
+
+      .container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      .header {
+        text-align: center;
+        color: white;
+        margin-bottom: 15px;
+      }
+
+      .header h1 {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      }
+
+      .header p {
+        font-size: 13px;
+        opacity: 0.9;
+      }
+
+      .chat-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      .chat-header {
+        background: linear-gradient(to bottom, #f6f6f6, #e8e8e8);
+        padding: 16px 20px;
+        border-bottom: 1px solid #d1d1d1;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .traffic-light {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+      }
+
+      .traffic-light.close {
+        background: #ff5f57;
+        border: 1px solid #e0443e;
+      }
+
+      .traffic-light.minimize {
+        background: #ffbd2e;
+        border: 1px solid #dea123;
+      }
+
+      .traffic-light.maximize {
+        background: #28c940;
+        border: 1px solid #1aab29;
+      }
+
+      .chat-title {
+        flex: 1;
+        text-align: center;
+        color: #3c3c3c;
+        font-size: 14px;
+        font-weight: 600;
+        margin-right: 44px;
+      }
+
+      .chat-body {
+        flex: 1;
+        padding: 0;
+        overflow: hidden;
+        background: #f5f5f7;
+        position: relative;
+        display: flex;
+      }
+
+      .chat-body::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .chat-body::-webkit-scrollbar-track {
+        background: #e0e0e0;
+      }
+
+      .chat-body::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 4px;
+      }
+
+      .chat-body::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      }
+
+      #app {
+        width: 100%;
+        height: 100%;
+        border: none;
+        overflow: hidden;
+      }
+
+      /* Log Panel Styles */
+      .log-panel {
+        width: 20%;
+        background: #0a0a0a;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+      }
+
+      .log-header {
+        background: linear-gradient(to bottom, #1a1a1a, #0f0f0f);
+        padding: 16px 20px;
+        border-bottom: 1px solid #333;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .log-title {
+        color: #00ff00;
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+      }
+
+      .log-content {
+        flex: 1;
+        padding: 16px;
+        overflow-y: auto;
+        background: #0a0a0a;
+        font-size: 11px;
+        line-height: 1.8;
+      }
+
+      .log-content::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .log-content::-webkit-scrollbar-track {
+        background: #1a1a1a;
+      }
+
+      .log-content::-webkit-scrollbar-thumb {
+        background: #00ff00;
+        border-radius: 3px;
+      }
+
+      .log-entry {
+        margin-bottom: 6px;
+        opacity: 0;
+        animation: fadeIn 0.3s ease-out forwards;
+      }
+
+      @keyframes fadeIn {
+        to {
+          opacity: 1;
+        }
+      }
+
+      .log-timestamp {
+        color: #666;
+        margin-right: 8px;
+      }
+
+      .log-type {
+        color: #00ff00;
+        font-weight: 600;
+        margin-right: 8px;
+      }
+
+      .log-message {
+        color: #00cc00;
+      }
+
+      .log-error {
+        color: #ff3333;
+      }
+
+      .log-warning {
+        color: #ffcc00;
+      }
+
+      .log-info {
+        color: #00ffff;
+      }
+
+      .cursor {
+        display: inline-block;
+        width: 8px;
+        height: 16px;
+        background: #00ff00;
+        animation: blink 1s infinite;
+      }
+
+      @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+      }
+
+      .message {
+        margin-bottom: 16px;
+        display: flex;
+        animation: slideIn 0.3s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .message.sent {
+        justify-content: flex-end;
+      }
+
+      .message.received {
+        justify-content: flex-start;
+      }
+
+      .message-bubble {
+        max-width: 70%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        position: relative;
+      }
+
+      .message.sent .message-bubble {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-bottom-right-radius: 4px;
+      }
+
+      .message.received .message-bubble {
+        background: white;
+        color: #3c3c3c;
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      }
+
+      .message-type {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        opacity: 0.8;
+      }
+
+      .message-content {
+        font-size: 14px;
+        line-height: 1.5;
+        word-wrap: break-word;
+      }
+
+      .message-time {
+        font-size: 11px;
+        margin-top: 6px;
+        opacity: 0.6;
+      }
+
+      .chat-input-area {
+        padding: 16px 20px;
+        background: white;
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        gap: 12px;
+      }
+
+      .input-wrapper {
+        flex: 1;
+        position: relative;
+      }
+
+      .chat-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #e0e0e0;
+        border-radius: 24px;
+        font-size: 14px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      .chat-input:focus {
+        border-color: #667eea;
+      }
+
+      .send-btn {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 24px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .send-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .send-btn:active {
+        transform: translateY(0);
+      }
+
+      .status-bar {
+        padding: 8px 20px;
+        background: #f0f0f0;
+        font-size: 12px;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #28c940;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main-container">
+      <div class="container">
+        <div class="header">
+          <h1>💬 父页面</h1>
+          <p>与子页面对话聊天</p>
+        </div>
+
+        <div class="chat-container">
+          <div class="chat-header">
+            <div class="traffic-light close"></div>
+            <div class="traffic-light minimize"></div>
+            <div class="traffic-light maximize"></div>
+            <div class="chat-title">父应用</div>
+          </div>
+          
+          <div class="chat-body" id="chat-body">
+            <iframe 
+              id="app" 
+              src="./child.html"
+              style="width: 100%; height: 100%; border: none;"
+            ></iframe>
+          </div>
+
+          <div class="status-bar">
+            <div class="status-dot"></div>
+            <span id="status-text">已连接到子页面</span>
+          </div>
+
+          <div class="chat-input-area">
+            <div class="input-wrapper">
+              <input 
+                type="text" 
+                class="chat-input" 
+                id="message-input"
+                placeholder="输入消息..."
+                onkeypress="handleKeyPress(event)"
+              />
+            </div>
+            <button class="send-btn" onclick="sendMessage()">
+              发送
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="log-panel">
+        <div class="log-header">
+          <div class="traffic-light close"></div>
+          <div class="traffic-light minimize"></div>
+          <div class="traffic-light maximize"></div>
+          <div class="log-title">系统日志</div>
+        </div>
+        <div class="log-content" id="log-content">
+          <div class="log-entry"><span class="log-timestamp">[00:00:00]</span><span class="log-type">SYSTEM</span><span class="log-message">系统初始化中...</span></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { IframeClient } from '../src/index.ts';
+
+      const chatBody = document.getElementById('chat-body');
+      const messageInput = document.getElementById('message-input');
+      const statusTextEl = document.getElementById('status-text');
+      const logContent = document.getElementById('log-content');
+      let iframe = null;
+
+      function getTime() {
+        const now = new Date();
+        return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
+
+      function addLog(message, type = 'INFO') {
+        const timestamp = `[${getTime()}]`;
+        const logEntry = document.createElement('div');
+        logEntry.className = 'log-entry';
+        
+        let typeClass = 'log-info';
+        if (type === 'ERROR') typeClass = 'log-error';
+        else if (type === 'WARNING') typeClass = 'log-warning';
+        else if (type === 'SUCCESS') typeClass = 'log-type';
+        
+        logEntry.innerHTML = `
+          <span class="log-timestamp">${timestamp}</span>
+          <span class="${typeClass}">${type}</span>
+          <span class="log-message">${message}</span>
+        `;
+        
+        logContent.appendChild(logEntry);
+        logContent.scrollTop = logContent.scrollHeight;
+      }
+
+      function addMessage(type, content, isSent = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        
+        const typeDiv = document.createElement('div');
+        typeDiv.className = 'message-type';
+        typeDiv.textContent = type;
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.textContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+        
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'message-time';
+        timeDiv.textContent = getTime();
+        
+        bubble.appendChild(typeDiv);
+        bubble.appendChild(contentDiv);
+        bubble.appendChild(timeDiv);
+        messageDiv.appendChild(bubble);
+        
+        chatBody.appendChild(messageDiv);
+        chatBody.scrollTop = chatBody.scrollHeight;
+      }
+
+      function sendMessage() {
+        const text = messageInput.value.trim();
+        if (!text || !iframe) return;
+        
+        // 记录日志
+        addLog(`发送消息到 iframe: "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`, 'SEND');
+        
+        // 发送到 iframe（子页面）
+        iframe.sendMessage('PARENT_TEXT', { text, timestamp: new Date().toISOString() });
+        
+        // 在父页面显示自己发送的消息（右侧）
+        addMessage('PARENT_TEXT', text, true);
+        
+        messageInput.value = '';
+      }
+
+      function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+          sendMessage();
+        }
+      }
+
+      // Initialize iframe client
+      const iframeElement = document.getElementById('app');
+      const client = new IframeClient({
+        type: 'parent',
+        iframe: iframeElement,
+        namespace: 'chat-demo',  // 🔥 命名空间（必填）
+        targetOrigin: '*',
+        onConnect: () => {
+          console.log('✅ 连接成功');
+          statusTextEl.textContent = '已连接到子页面';
+          addLog('Iframe 连接已建立', 'SUCCESS');
+          addLog('目标窗口已就绪', 'INFO');
+          
+          setTimeout(() => {
+            client.sendMessage('INIT', { 
+              message: '你好，来自父页面！',
+              timestamp: new Date().toISOString()
+            });
+            addLog('已发送 INIT 命令到 iframe', 'SEND');
+          }, 500);
+        },
+        onError: (error) => {
+          console.error('❌ 连接失败:', error);
+          statusTextEl.textContent = '连接错误';
+          addLog(`连接失败：${error.message}`, 'ERROR');
+        }
+      });
+      
+      // 保存引用供全局使用
+      iframe = client;
+
+      // Listen for messages
+      iframe.on('SUCCESS', (data) => {
+        addMessage('SUCCESS', data.message || data, false);
+        addLog(`收到来自 iframe 的 SUCCESS 响应`, 'RECEIVE');
+      });
+
+      iframe.on('CHILD_MESSAGE', (data) => {
+        addMessage('CHILD_MESSAGE', data.text || data, false);
+        addLog(`收到来自 iframe 的 CHILD_MESSAGE`, 'RECEIVE');
+      });
+
+      iframe.on('READ_CONFIRMATION', (data) => {
+        addMessage('READ_CONFIRMATION', data.message || '✅ 已读取', false);
+        addLog(`收到消息读取确认`, 'SUCCESS');
+      });
+
+      // 不再监听 PARENT_TEXT，因为已经在发送时显示了
+
+      // Initial logs
+      addLog('系统初始化启动...', 'SYSTEM');
+      addLog('正在加载 iframe-client 库', 'INFO');
+      addLog('创建 iframe 实例', 'INFO');
+
+      // Expose functions globally
+      window.sendMessage = sendMessage;
+      window.handleKeyPress = handleKeyPress;
+    </script>
+  </body>
+</html>
