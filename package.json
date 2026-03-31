@@ -31,12 +31,16 @@
     "communication",
     "postMessage"
   ],
-  "description": "A powerful iframe communication library",
+  "description": "一个 简单、轻量、专注通信 的 JavaScript / TypeScript 库，用于 iframe 跨域消息传递。",
   "author": "giszhc",
   "license": "MIT",
+  "homepage": "https://github.com/giszhc/iframe-client#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/giszhc/iframe-client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/giszhc/iframe-client/issues"
   },
   "publishConfig": {
     "access": "public"
