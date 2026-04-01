@@ -1,17 +1,10 @@
 {
   "name": "@giszhc/iframe-client",
-  "private": false,
-  "version": "0.0.3",
+  "version": "0.0.4",
   "type": "module",
-  "main": "./dist/iframe-client.umd.cjs",
-  "module": "./dist/iframe-client.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/iframe-client.js",
-      "require": "./dist/iframe-client.umd.cjs"
-    }
-  },
+  "main": "dist/iframe-client.umd.cjs",
+  "module": "dist/iframe-client.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
