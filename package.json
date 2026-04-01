@@ -1,12 +1,13 @@
 {
   "name": "@giszhc/iframe-client",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "type": "module",
   "main": "dist/iframe-client.umd.cjs",
   "module": "dist/iframe-client.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "dev": "vite",
