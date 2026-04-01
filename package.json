@@ -1,7 +1,7 @@
 {
   "name": "@giszhc/iframe-client",
   "private": false,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "main": "./dist/iframe-client.umd.cjs",
   "module": "./dist/iframe-client.js",

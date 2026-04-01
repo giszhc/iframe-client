@@ -90,21 +90,25 @@ const client = new IframeClient({
 ```ts
 import { IframeClient } from '@giszhc/iframe-client';
 
+// 获取 iframe DOM 元素
 const iframe = document.getElementById('myIframe') as HTMLIFrameElement;
 
 const client = new IframeClient({
-  type: 'parent',
-  iframe,
-  targetOrigin: 'http://localhost:3001',
-  namespace: 'my-app:demo:v1',
+  type: 'parent',              // 指定当前角色为父页面
+  iframe,                      // 传入 iframe DOM 元素
+  targetOrigin: 'http://localhost:3001',  // 子页面的目标源地址（生产环境请指定具体域名）
+  namespace: 'my-app:demo:v1', // 命名空间，用于消息隔离（格式建议：应用名：功能：版本）
 
+  // 连接成功后的回调函数（握手完成后触发）
   onConnect: () => {
     console.log('✅ 已连接 iframe');
 
+    // 发送初始化消息，包含用户 ID
     client.sendMessage('INIT', { id: 123 });
   }
 });
 
+// 监听来自子页面的 RESPONSE 类型消息
 client.on('RESPONSE', (data) => {
   console.log('收到响应:', data);
 });
@@ -118,19 +122,22 @@ client.on('RESPONSE', (data) => {
 import { IframeClient } from '@giszhc/iframe-client';
 
 const client = new IframeClient({
-  type: 'child',
-  targetWindow: window.parent,
-  targetOrigin: 'http://localhost:3000',
-  namespace: 'my-app:demo:v1',
+  type: 'child',               // 指定当前角色为子页面（iframe 内）
+  targetWindow: window.parent, // 指定目标窗口为父窗口
+  targetOrigin: 'http://localhost:3000',  // 父页面的源地址（生产环境请指定具体域名）
+  namespace: 'my-app:demo:v1', // 命名空间，必须与父页面保持一致
 
+  // 连接成功后的回调函数（握手完成后触发）
   onConnect: () => {
     console.log('✅ 已连接父页面');
   }
 });
 
+// 监听来自父页面的 INIT 类型消息
 client.on('INIT', (data) => {
   console.log('收到:', data);
 
+  // 发送响应消息给父页面
   client.sendMessage('RESPONSE', { ok: true });
 });
 ```

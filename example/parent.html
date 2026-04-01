@@ -111,7 +111,9 @@
         overflow: hidden;
         background: #f5f5f7;
         position: relative;
-        display: flex;
+        display: block;
+        width: 100%;
+        height: 100%;
       }
 
       .chat-body::-webkit-scrollbar {
@@ -136,6 +138,7 @@
         height: 100%;
         border: none;
         overflow: hidden;
+        display: block;
       }
 
       /* Log Panel Styles */
@@ -397,7 +400,7 @@
             <div class="chat-title">父应用</div>
           </div>
           
-          <div class="chat-body" id="chat-body">
+          <div class="chat-body">
             <iframe 
               id="app" 
               src="./child.html"
@@ -443,7 +446,6 @@
     <script type="module">
       import { IframeClient } from '../src/index.ts';
 
-      const chatBody = document.getElementById('chat-body');
       const messageInput = document.getElementById('message-input');
       const statusTextEl = document.getElementById('status-text');
       const logContent = document.getElementById('log-content');
@@ -506,14 +508,17 @@
         const text = messageInput.value.trim();
         if (!text || !iframe) return;
         
+        // 检查连接状态
+        if (!iframe.isConnected()) {
+          addLog('❌ 连接尚未建立，无法发送消息', 'ERROR');
+          return;
+        }
+        
         // 记录日志
         addLog(`发送消息到 iframe: "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`, 'SEND');
         
         // 发送到 iframe（子页面）
         iframe.sendMessage('PARENT_TEXT', { text, timestamp: new Date().toISOString() });
-        
-        // 在父页面显示自己发送的消息（右侧）
-        addMessage('PARENT_TEXT', text, true);
         
         messageInput.value = '';
       }
@@ -555,23 +560,18 @@
       // 保存引用供全局使用
       iframe = client;
 
-      // Listen for messages
+      // Listen for messages (仅记录日志，不显示消息)
       iframe.on('SUCCESS', (data) => {
-        addMessage('SUCCESS', data.message || data, false);
         addLog(`收到来自 iframe 的 SUCCESS 响应`, 'RECEIVE');
       });
 
       iframe.on('CHILD_MESSAGE', (data) => {
-        addMessage('CHILD_MESSAGE', data.text || data, false);
         addLog(`收到来自 iframe 的 CHILD_MESSAGE`, 'RECEIVE');
       });
 
       iframe.on('READ_CONFIRMATION', (data) => {
-        addMessage('READ_CONFIRMATION', data.message || '✅ 已读取', false);
         addLog(`收到消息读取确认`, 'SUCCESS');
       });
-
-      // 不再监听 PARENT_TEXT，因为已经在发送时显示了
 
       // Initial logs
       addLog('系统初始化启动...', 'SYSTEM');
