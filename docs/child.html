@@ -197,8 +197,10 @@
       </div>
     </div>
 
-    <!-- 通过 CDN 直接引入 iframe-client（固定版本，避免 @latest 缓存漂移） -->
+    <!-- 通过 CDN 引入 iframe-client（多源兜底：jsdelivr → unpkg → 同源 ./dist） -->
     <script src="https://cdn.jsdelivr.net/npm/@giszhc/iframe-client@0.0.6/dist/iframe-client.umd.min.js"></script>
+    <script>if (!window.IframeClient) document.write('<script src="https://unpkg.com/@giszhc/iframe-client@0.0.6/dist/iframe-client.umd.min.js"><\/script>')</script>
+    <script>if (!window.IframeClient) document.write('<script src="./dist/iframe-client.umd.min.js"><\/script>')</script>
     <script>
       const { IframeClient } = window;
           
