@@ -1,2 +1,8 @@
+# pnpm workspace 配置（pnpm 11）
+# packages 必须声明，否则 pnpm 会报 "packages field missing or empty"
+packages:
+  - .
+
+# 允许 esbuild 执行安装后构建脚本（vite 依赖）
 allowBuilds:
   esbuild: true

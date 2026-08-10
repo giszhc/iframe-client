@@ -28,12 +28,14 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          # 与本地 pnpm 11 保持一致（lockfile 为 9.0 格式，pnpm 9 无法解析）
+          version: 11
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Node 20 已被 runner 弃用，使用 22 LTS
+          node-version: 22
           cache: pnpm
 
       - name: Install dependencies
