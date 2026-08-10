@@ -5,7 +5,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
-      name: 'iframe-client',
+      name: 'IframeClient',
       fileName: 'iframe-client'
     },
     rollupOptions: {

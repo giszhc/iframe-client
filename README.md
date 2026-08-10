@@ -25,6 +25,8 @@
 
 **🌐 立即体验：** [点击访问在线演示](https://giszhc.github.io/iframe-client/example/parent.html)
 
+**📦 CDN 引入演示：** [父页面](https://giszhc.github.io/iframe-client/example/cdn-parent.html) · [子页面](https://giszhc.github.io/iframe-client/example/cdn-child.html) — 演示通过 `<script>` 直接引入库（本地预览可打开 `example/cdn-parent.html`）
+
 ---
 
 ## 安装
@@ -37,6 +39,86 @@ yarn add @giszhc/iframe-client
 ```
 
 ---
+
+## 🌐 CDN 引入（无需构建工具）
+
+发布 npm 后，可直接通过 CDN 以 `<script>` 标签引入，无需任何打包器 / 构建步骤。
+
+### 引入方式
+
+```html
+<!-- jsDelivr -->
+<script src="https://cdn.jsdelivr.net/npm/@giszhc/iframe-client@latest/dist/iframe-client.umd.min.js"></script>
+
+<!-- 或 unpkg -->
+<script src="https://unpkg.com/@giszhc/iframe-client@latest/dist/iframe-client.umd.min.js"></script>
+```
+
+引入后自动挂载全局变量 `window.IframeClient`，用法与 npm 安装完全一致。
+
+### 父页面
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@giszhc/iframe-client@latest/dist/iframe-client.umd.min.js"></script>
+<script>
+  const { IframeClient } = window;
+
+  const client = new IframeClient({
+    type: 'parent',
+    iframe: document.getElementById('myIframe'),
+    namespace: 'my-app:demo:v1',
+    onConnect: () => {
+      client.sendMessage('INIT', { id: 123 });
+    }
+  });
+
+  client.on('RESPONSE', (data) => {
+    console.log('收到响应:', data);
+  });
+</script>
+```
+
+### 子页面（iframe 内）
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@giszhc/iframe-client@latest/dist/iframe-client.umd.min.js"></script>
+<script>
+  const { IframeClient } = window;
+
+  const client = new IframeClient({
+    type: 'child',
+    targetWindow: window.parent,
+    namespace: 'my-app:demo:v1', // 必须与父页面一致
+    onConnect: () => {
+      console.log('✅ 已连接父页面');
+    }
+  });
+
+  client.on('INIT', (data) => {
+    client.sendMessage('RESPONSE', { ok: true });
+  });
+</script>
+```
+
+> 💡 生产环境建议将 `@latest` 替换为具体的版本号（如 `@0.0.6`），避免依赖漂移。
+
+### 产物说明
+
+| 文件 | 格式 | 用途 |
+| --- | --- | --- |
+| `dist/iframe-client.js` | ESM | 现代打包器 `import`（`module` 字段） |
+| `dist/iframe-client.umd.cjs` | UMD | Node.js `require`（`main` 字段） |
+| `dist/iframe-client.umd.min.js` | UMD（压缩） | CDN `<script>` 直接引入（`unpkg` / `jsdelivr` 字段） |
+
+### 发布到 npm / CDN
+
+```bash
+# 1. 确认版本号（package.json version，发布前记得 bump）
+# 2. 构建产物
+pnpm build
+# 3. 发布（unpkg / jsdelivr 会自动同步 npm 上的 dist 文件）
+npm publish
+```
 
 ## ⚠️ 通信机制（重要）
 

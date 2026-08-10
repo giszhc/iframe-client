@@ -1,17 +1,28 @@
 {
   "name": "@giszhc/iframe-client",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "type": "module",
   "main": "dist/iframe-client.umd.cjs",
   "module": "dist/iframe-client.js",
   "types": "dist/index.d.ts",
+  "unpkg": "dist/iframe-client.umd.min.js",
+  "jsdelivr": "dist/iframe-client.umd.min.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/iframe-client.js",
+      "require": "./dist/iframe-client.umd.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
   "files": [
     "dist",
     "README.md"
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vite build && tsc --declaration --emitDeclarationOnly --outDir dist ",
+    "build": "node scripts/build.mjs && tsc --declaration --emitDeclarationOnly --outDir dist",
     "build:example": "vite build --config vite.example.config.ts"
   },
   "devDependencies": {
