@@ -197,12 +197,38 @@
       </div>
     </div>
 
-    <!-- 通过 CDN 引入 iframe-client（多源兜底：jsdelivr → unpkg → 同源 ./dist） -->
-    <script src="https://cdn.jsdelivr.net/npm/@giszhc/iframe-client@0.0.6/dist/iframe-client.umd.min.js"></script>
-    <script>if (!window.IframeClient) document.write('<script src="https://unpkg.com/@giszhc/iframe-client@0.0.6/dist/iframe-client.umd.min.js"><\/script>')</script>
-    <script>if (!window.IframeClient) document.write('<script src="./dist/iframe-client.umd.min.js"><\/script>')</script>
+    <!-- 库加载器：多源动态加载（jsdelivr → unpkg → 同源 ./dist），成功后回调初始化业务 -->
     <script>
-      const { IframeClient } = window;
+      (function (sources, done) {
+        var i = 0;
+        function next() {
+          if (i >= sources.length) {
+            console.error('[iframe-client] 所有加载源均失败');
+            return;
+          }
+          var s = document.createElement('script');
+          var timer = setTimeout(next, 3000); // 3s 无响应则切换下一源
+          s.src = sources[i++];
+          s.onload = function () {
+            clearTimeout(timer);
+            if (window.IframeClient) done();
+            else next();
+          };
+          s.onerror = function () { clearTimeout(timer); next(); };
+          document.head.appendChild(s);
+        }
+        next();
+      })([
+        'https://cdn.jsdelivr.net/npm/@giszhc/iframe-client@0.0.6/dist/iframe-client.umd.min.js',
+        'https://unpkg.com/@giszhc/iframe-client@0.0.6/dist/iframe-client.umd.min.js',
+        './dist/iframe-client.umd.min.js'
+      ], function () {
+        initDemo();
+      });
+    </script>
+    <script>
+      function initDemo() {
+        const { IframeClient } = window;
           
       const chatBody = document.getElementById('chat-body');
       const messageInput = document.getElementById('message-input');
@@ -330,6 +356,7 @@
       });
     
       console.log('🚀 Child page initialized with IframeClient');
+      }
     </script>
   </body>
 </html>
