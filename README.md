@@ -23,9 +23,9 @@
 
 我们提供了一个功能完整的在线演示页面，您可以直接在浏览器中体验所有功能：
 
-**🌐 立即体验：** [点击访问在线演示](https://giszhc.github.io/iframe-client/example/parent.html)
+**🌐 立即体验：** [点击访问在线演示](https://giszhc.github.io/iframe-client/)
 
-**📦 CDN 引入演示：** [父页面](https://giszhc.github.io/iframe-client/example/cdn-parent.html) · [子页面](https://giszhc.github.io/iframe-client/example/cdn-child.html) — 演示通过 `<script>` 直接引入库（本地预览可打开 `example/cdn-parent.html`）
+> 演示站点由 GitHub Actions 自动构建部署，页面即本仓库 `example/` 下的 `index.html`（父页面）+ `child.html`（子页面），两者均通过 CDN 直接引入 iframe-client 库。
 
 ---
 
@@ -425,6 +425,38 @@ window.addEventListener('message', ...)
 * 握手
 * 安全校验
 * 消息管理
+
+---
+
+## 🚀 GitHub Pages 自动部署
+
+本仓库内置 GitHub Actions 工作流（`.github/workflows/deploy.yml`），推送代码到 `main` 分支后会自动构建示例站点并部署到 GitHub Pages。
+
+### 工作流程
+
+```
+push → main
+  → pnpm install --frozen-lockfile
+  → pnpm run build:example   # 构建 example/ 到 docs/
+  → upload-pages-artifact + deploy-pages  # 部署 docs/ 到 Pages
+```
+
+### 一次性设置
+
+首次使用需在仓库设置中开启 Pages 的 GitHub Actions 部署：
+
+1. 打开仓库 **Settings → Pages**
+2. **Build and deployment → Source** 选择 **GitHub Actions**
+3. 推送任意代码（或手动运行 Actions 中的 `Deploy to GitHub Pages`）触发部署
+
+### 访问地址
+
+部署完成后：
+
+* 演示站点：**https://giszhc.github.io/iframe-client/**（直接访问，无需 `/example/parent.html` 后缀）
+* 子页面：`https://giszhc.github.io/iframe-client/child.html`
+
+> 💡 若默认分支不是 `main`，请修改 `deploy.yml` 中 `on.push.branches` 为对应分支名。
 
 ---
 

@@ -383,8 +383,6 @@
         50% { opacity: 0.5; }
       }
     </style>
-    <script type="module" crossorigin src="../parent.js"></script>
-    <link rel="modulepreload" crossorigin href="../index.DqNc-9KT.js">
   </head>
   <body>
     <div class="main-container">
@@ -444,6 +442,147 @@
         </div>
       </div>
     </div>
-
+
+    <!-- 通过 CDN 直接引入 iframe-client（发布 npm 后自动同步） -->
+    <script src="https://cdn.jsdelivr.net/npm/@giszhc/iframe-client@latest/dist/iframe-client.umd.min.js"></script>
+    <script>
+      const { IframeClient } = window;
+
+      const messageInput = document.getElementById('message-input');
+      const statusTextEl = document.getElementById('status-text');
+      const logContent = document.getElementById('log-content');
+      let iframe = null;
+
+      function getTime() {
+        const now = new Date();
+        return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
+
+      function addLog(message, type = 'INFO') {
+        const timestamp = `[${getTime()}]`;
+        const logEntry = document.createElement('div');
+        logEntry.className = 'log-entry';
+        
+        let typeClass = 'log-info';
+        if (type === 'ERROR') typeClass = 'log-error';
+        else if (type === 'WARNING') typeClass = 'log-warning';
+        else if (type === 'SUCCESS') typeClass = 'log-type';
+        
+        logEntry.innerHTML = `
+          <span class="log-timestamp">${timestamp}</span>
+          <span class="${typeClass}">${type}</span>
+          <span class="log-message">${message}</span>
+        `;
+        
+        logContent.appendChild(logEntry);
+        logContent.scrollTop = logContent.scrollHeight;
+      }
+
+      function addMessage(type, content, isSent = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        
+        const typeDiv = document.createElement('div');
+        typeDiv.className = 'message-type';
+        typeDiv.textContent = type;
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        contentDiv.textContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+        
+        const timeDiv = document.createElement('div');
+        timeDiv.className = 'message-time';
+        timeDiv.textContent = getTime();
+        
+        bubble.appendChild(typeDiv);
+        bubble.appendChild(contentDiv);
+        bubble.appendChild(timeDiv);
+        messageDiv.appendChild(bubble);
+        
+        chatBody.appendChild(messageDiv);
+        chatBody.scrollTop = chatBody.scrollHeight;
+      }
+
+      function sendMessage() {
+        const text = messageInput.value.trim();
+        if (!text || !iframe) return;
+        
+        // 检查连接状态
+        if (!iframe.isConnected()) {
+          addLog('❌ 连接尚未建立，无法发送消息', 'ERROR');
+          return;
+        }
+        
+        // 记录日志
+        addLog(`发送消息到 iframe: "${text.substring(0, 30)}${text.length > 30 ? '...' : ''}"`, 'SEND');
+        
+        // 发送到 iframe（子页面）
+        iframe.sendMessage('PARENT_TEXT', { text, timestamp: new Date().toISOString() });
+        
+        messageInput.value = '';
+      }
+
+      function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+          sendMessage();
+        }
+      }
+
+      // Initialize iframe client
+      const iframeElement = document.getElementById('app');
+      const client = new IframeClient({
+        type: 'parent',
+        iframe: iframeElement,
+        namespace: 'chat-demo',  // 🔥 命名空间（必填）
+        targetOrigin: '*',
+        onConnect: () => {
+          console.log('✅ 连接成功');
+          statusTextEl.textContent = '已连接到子页面';
+          addLog('Iframe 连接已建立', 'SUCCESS');
+          addLog('目标窗口已就绪', 'INFO');
+          
+          setTimeout(() => {
+            client.sendMessage('INIT', { 
+              message: '你好，来自父页面！',
+              timestamp: new Date().toISOString()
+            });
+            addLog('已发送 INIT 命令到 iframe', 'SEND');
+          }, 500);
+        },
+        onError: (error) => {
+          console.error('❌ 连接失败:', error);
+          statusTextEl.textContent = '连接错误';
+          addLog(`连接失败：${error.message}`, 'ERROR');
+        }
+      });
+      
+      // 保存引用供全局使用
+      iframe = client;
+
+      // Listen for messages (仅记录日志，不显示消息)
+      iframe.on('SUCCESS', (data) => {
+        addLog(`收到来自 iframe 的 SUCCESS 响应`, 'RECEIVE');
+      });
+
+      iframe.on('CHILD_MESSAGE', (data) => {
+        addLog(`收到来自 iframe 的 CHILD_MESSAGE`, 'RECEIVE');
+      });
+
+      iframe.on('READ_CONFIRMATION', (data) => {
+        addLog(`收到消息读取确认`, 'SUCCESS');
+      });
+
+      // Initial logs
+      addLog('系统初始化启动...', 'SYSTEM');
+      addLog('正在加载 iframe-client 库', 'INFO');
+      addLog('创建 iframe 实例', 'INFO');
+
+      // Expose functions globally
+      window.sendMessage = sendMessage;
+      window.handleKeyPress = handleKeyPress;
+    </script>
   </body>
 </html>

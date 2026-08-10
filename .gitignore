@@ -19,3 +19,6 @@ Thumbs.db
 
 # Test coverage
 coverage/
+
+# WorkBuddy workspace data
+.workbuddy/
