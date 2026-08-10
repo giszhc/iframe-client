@@ -443,22 +443,38 @@
       </div>
     </div>
 
-    <!-- 库加载器：多源动态加载（jsdelivr → unpkg → 同源 ./dist），成功后回调初始化业务 -->
+    <!-- 库加载器：多源动态加载（jsdelivr → unpkg → 同源 ./dist），严格校验产物完整后才初始化 -->
     <script>
       (function (sources, done) {
         var i = 0;
         function next() {
           if (i >= sources.length) {
-            console.error('[iframe-client] 所有加载源均失败');
+            console.error('[iframe-client] 所有加载源均失败或产物无效');
             return;
           }
+          var src = sources[i++];
           var s = document.createElement('script');
           var timer = setTimeout(next, 3000); // 3s 无响应则切换下一源
-          s.src = sources[i++];
+          s.src = src;
           s.onload = function () {
             clearTimeout(timer);
-            if (window.IframeClient) done();
-            else next();
+            var ns = window.IframeClient;
+            // 严格验证：window.IframeClient.IframeClient 必须是构造函数才算加载成功
+            if (ns && typeof ns.IframeClient === 'function') {
+              console.log('[iframe-client] 已从 ' + src + ' 加载');
+              done();
+              return;
+            }
+            // 兼容：个别产物把类直接挂为 window.IframeClient，包装成命名空间
+            if (typeof ns === 'function') {
+              window.IframeClient = { IframeClient: ns };
+              console.log('[iframe-client] 已从 ' + src + ' 加载（兼容模式）');
+              done();
+              return;
+            }
+            // 产物被截断/污染（空壳），切换下一源
+            console.warn('[iframe-client] ' + src + ' 产物无效，切换下一源');
+            next();
           };
           s.onerror = function () { clearTimeout(timer); next(); };
           document.head.appendChild(s);
